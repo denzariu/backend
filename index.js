@@ -17,7 +17,8 @@ const pool = new Pool({
 
 pool.connect((err) => {
     if (err) {
-        console.error(console.error('Error @ Connecting to PostgreSQL database: ', err));
+        console.error('Error @ Connecting to PostgreSQL database: ', err);
+        throw err;
         return;
     }
     console.log("Connected successfully to PGSQL!");
@@ -60,8 +61,10 @@ app.get('/', (req, res) => {        //get requests to the root ("/") will route 
     // client.query('')
     // pool.query('')
     res.status(200).json({hello: 'hi'})
-    //res.sendFile('index.html', {root: __dirname});      //server responds by sending the index.html file to the client's browser
-                                                        //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile 
+    //res.sendFile('index.html', {root: __dirname});      
+
+    //server responds by sending the index.html file to the client's browser
+    //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile 
 });
 
 app.get('/create', (req, res) => {
@@ -82,6 +85,7 @@ app.get('/get', (req, res) => {
     )
 })
 
-app.listen(port, () => {            //server starts listening for any attempts from a client to connect at port: {port}
+app.listen(port, () => {            
+    //server starts listening for any attempts from a client to connect at port: {port}
     console.log(`Now listening on port ${port}`); 
 });
