@@ -1,21 +1,39 @@
+import { DataSource } from 'typeorm';
+import { graphqlHTTP } from 'express-graphql';
 
-const express = require('express'); //Import the express dependency
-const app = express();              //Instantiate an express app, the main work horse of this server
-const port = 5000;                  //Save the port number where your server will be listening
+const schema = require('./schema/index.ts');
+const Accounts = require('./entities/Accounts.ts');
 
 require('dotenv').config()
+const cors = require('cors')
+const { Pool } = require('pg')
+const express = require('express'); //Import the express dependency
+
+const app = express();              //Instantiate an express app, the main work horse of this server
+const port = 5000;                  //The port number where the server will is listening
+
+// See environment variables
 // console.log(process.env)
 
-const cors = require('cors')
+// Init PostgreSQL
+const dataSource = new DataSource({
+  type: "postgres",
+  url: process.env.POSTGRES_URL,
+  ssl: true,
 
+  logging: true,
+  synchronize: false,
+  
+  entities: [Accounts],
+});
+dataSource.initialize()
 
-const { Pool } = require('pg')
 
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL + "?sslmode=require"
 })
 
-pool.connect((err) => {
+pool.connect((err: any) => {
     if (err) {
         console.error('Error @ Connecting to PostgreSQL database: ', err);
         throw err;
@@ -24,9 +42,8 @@ pool.connect((err) => {
 })
 
 
-
-//Idiomatic expression in express to route and respond to a client request
-app.use((req, res, next) => {
+//CORS
+app.use((req: any, res: any, next: any) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Max-Age", "1800");
@@ -36,28 +53,21 @@ app.use((req, res, next) => {
 });
 app.use(cors())
 
-app.get('/', (req, res) => {        //get requests to the root ("/") will route here
 
-
+//Root route
+app.get('/', (req: any, res: any) => {        
     res.status(200).json({hello: 'hi'})     
-
 });
 
-// app.get('/create', (req, res) => {
-//     try {
-//     pool.query("CREATE TABLE user (name VARCHAR(255), pass VARCHAR(255));")
-//     .then(
-//         res.status(200).json({success: 1, message: "Created table."})
-//     )
-//     .catch(
-//         res.status(500).json({success: 0, message: "Couldn't meet request."})
-//     )} catch (err) {
-//         throw err
-//     }
-// })
+//GraphQL interface
+app.use('/graphql', graphqlHTTP({
+  schema,
+  graphiql: true
+}))
+
 
 // Define route to create table
-app.post('/create', async (req, res) => {
+app.post('/create', async (req: any, res: any) => {
     try {
       // Execute SQL query to create table using pool.query
       await pool.query(`
@@ -76,7 +86,7 @@ app.post('/create', async (req, res) => {
 
 // Express route to add values to the table
 // e.g. /account?name=...
-app.post('/account', async (req, res) => {
+app.post('/account', async (req: any, res: any) => {
     const { name } = req.query; // Assuming the parameter for name is passed as 'name'
   
     try {
@@ -95,7 +105,7 @@ app.post('/account', async (req, res) => {
 });
 
 // Express route to get a specific user by ID
-app.get('/account/:id', async (req, res) => {
+app.get('/account/:id', async (req: any, res: any) => {
     const userId = req.params.id;
   
     try {
@@ -117,7 +127,8 @@ app.get('/account/:id', async (req, res) => {
     }
 });
 
-app.get('/accounts', async (req, res) => {
+// View all entries
+app.get('/accounts', async (req: any, res: any) => {
 
     try {
         const result = await pool.query("SELECT * FROM account")
@@ -133,6 +144,7 @@ app.get('/accounts', async (req, res) => {
         res.status(500).send('Error retrieving users');
     }
 })
+
 
 app.listen(port, () => {            
     //server starts listening for any attempts from a client to connect at port: {port}
