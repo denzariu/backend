@@ -1,34 +1,60 @@
 import { BaseEntity, Entity, Column, PrimaryGeneratedColumn } from "typeorm";
-
+import "reflect-metadata"
 
 
 @Entity()
 export class Accounts extends BaseEntity {
   
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({
+    type: "int"
+  })
   id!: number;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   username?: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   password!: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   email!: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   first_name!: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   last_name!: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   token?: string;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   token_expire?: number;
 
-  @Column()
+  @Column({
+    type: 'varchar',
+    nullable: true
+  })
   picture_url?: string;
 }
