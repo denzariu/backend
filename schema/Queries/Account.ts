@@ -43,6 +43,7 @@ import { GraphQLBoolean, GraphQLList, GraphQLString } from "graphql";
 import { AccountType } from "../Types/Account.ts";
 import { Accounts } from "../../entities/Accounts.ts";
 import { JwtPayload, jwtDecode } from "jwt-decode";
+import { ResponseType } from "../Types/Response.ts";
 
 export const GET_ALL_ACCOUNTS = {
   type: new GraphQLList(AccountType),
@@ -94,7 +95,7 @@ export const MAIL_EXISTS = {
                 - Normal user -> email + pass
   */
 export const CAN_LOGIN = {
-  type: GraphQLBoolean,
+  type: ResponseType,
   args: {
     password: { type: GraphQLString },
     email: { type: GraphQLString },
@@ -114,14 +115,14 @@ export const CAN_LOGIN = {
 
       // If error ==> deny
       //@ts-ignore
-      if (!user_fetch.ok || user_fetch.error === "invalid_token") return false;
+      if (!user_fetch.ok || user_fetch.error === "invalid_token") return {successful: false, message: 'Login token is invalid.'};
 
       // console.log('Fetching was ok. Checking exp... ')
 
       
       // If token is expired ==> deny
       //@ts-ignore
-      if (user_fetch.exp < Date.now()) return false;
+      if (user_fetch.exp < Date.now()) return {successful: false, message: 'Login token is expired.'};
       
 
       // Search for user in DB
@@ -131,28 +132,28 @@ export const CAN_LOGIN = {
       // console.log('Expiration date is ok. Checking if user exists in DB...', user)
 
       // if no user was found, it needs to be added
-      if (!user) return false
+      if (!user) return {successful: false, message: 'User does not have an account. Please sign up.'}
 
       // console.log('User exists in DB. Testing if credential exists: ', !user_credential.exp, " and if its exp <= now ", user_credential.exp, ' < ', Date.now() / 1000)
 
 
       // if user logged in with a token, check valability
-      if (!user_credential.exp || user_credential.exp <= Date.now() / 1000) return false
+      if (!user_credential.exp || user_credential.exp <= Date.now() / 1000) return {successful: false, message: 'User\'s token is invalid.'}
       else {
         // console.log('CAN LOG IN! ')
 
-        return true
+        return {successful: true, message: 'User logged in with JWT successfully.'}
       }
     } else {
       const user = await Accounts.findOneBy({ email: args.email, password: args.password })
 
       // if no user was found ==> deny
-      if (!user) return false
+      if (!user) return  {successful: false, message: 'User does not have an account.'}
 
       // if credentials are not valid ==> deny
-      if (args.password !== user.password) return false
+      if (args.password !== user.password) return {successful: false, message: 'Invalid credentials.'}
 
-      return true
+      return {successful: true, message: 'User logged in with email & password successfully.'}
     }
     
 
