@@ -4,18 +4,22 @@ import { Accounts } from "../../entities/Accounts.ts";
 import { ResponseType } from "../Types/Response.ts";
 
  export const CREATE_ACCOUNT = {
-  type: AccountType,
+  type: ResponseType,
   args: {
+    first_name: { type: GraphQLString },
+    last_name: { type: GraphQLString },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
   },
-  async resolve(parent: any, args: any): Promise<typeof args> {
-    console.log(args, parent)
-
-    const { email, password } = args;
-    await Accounts.insert({email, password});
-
-    return args;
+  async resolve(parent: any, args: any): Promise<typeof args> {    
+    
+    const user = await Accounts.findOneBy({email: args.email})
+    
+    if (user) return {successful: false, message: "Mail already used. Log in."}
+    else {
+      await Accounts.insert(args);
+      return {successful: true, message: "Account created successfully."}
+    }
   },
  };
 
@@ -25,10 +29,9 @@ import { ResponseType } from "../Types/Response.ts";
     id: { type: GraphQLID }
   },
   async resolve(parent: any, args: any) {
-    console.log(args, parent)
-
     const id = args.id
     await Accounts.delete(id)
+    
     return {successful: true, message: 'DELETED ACCOUNT SUCCESSFULLY'}
   }
  } 
