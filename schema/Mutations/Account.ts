@@ -19,7 +19,7 @@ import { JwtPayload, jwtDecode } from "jwt-decode";
 
       // Check if credentials are valid
       const user_credential = jwtDecode<JwtPayload>(args.credential)
-      const user_fetch = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${args.google_auth}`)
+      const user_fetch = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${args.credential}`)
       
       // If error ==> deny signup
       //@ts-ignore
