@@ -116,9 +116,6 @@ export const CAN_LOGIN = {
       // If error ==> deny
       //@ts-ignore
       if (!user_fetch.ok || user_fetch.error === "invalid_token") return {successful: false, message: 'Login token is invalid.'};
-
-      // console.log('Fetching was ok. Checking exp... ')
-
       
       // If token is expired ==> deny
       //@ts-ignore
@@ -129,19 +126,12 @@ export const CAN_LOGIN = {
       //@ts-ignore
       const user = await Accounts.findOneBy({ email: user_credential.email })
 
-      // console.log('Expiration date is ok. Checking if user exists in DB...', user)
-
       // if no user was found, it needs to be added
       if (!user) return {successful: false, message: 'User does not have an account. Please sign up.'}
-
-      // console.log('User exists in DB. Testing if credential exists: ', !user_credential.exp, " and if its exp <= now ", user_credential.exp, ' < ', Date.now() / 1000)
-
 
       // if user logged in with a token, check valability
       if (!user_credential.exp || user_credential.exp <= Date.now() / 1000) return {successful: false, message: 'User\'s token is invalid.'}
       else {
-        // console.log('CAN LOG IN! ')
-
         return {successful: true, message: 'User logged in with JWT successfully.'}
       }
     } else {
